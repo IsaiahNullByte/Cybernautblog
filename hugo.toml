@@ -1,0 +1,4 @@
+baseURL = 'https://isaiahnullbyte.github.io/cybernautblog/'
+languageCode = 'en-us'
+title = 'The Cybernaut Blog'
+theme = 'terminal'
