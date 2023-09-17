@@ -22,7 +22,7 @@ With this reverse proxy setup we can mask all of our traffic to appear as essent
 
 **We will host a reverse proxy on the internet. With a tool called stunnel we can create an ecrypted port forwarding tunnel over a 443(HTTPS) connection. Then we will use that port forward to create a ssh tunnel hidden within the encrypted 443(ssl) traffic that will allow us to setup a nested socks proxy OR portforward which in turn allows us to send any traffic we want out of the network.** 
 
-![Reverse Proxy Diagram](/static/ReverseProxy.png)
+![Reverse Proxy Diagram](/blob/main/static/ReverseProxy.png)
 
 Lets get started!
 
@@ -303,7 +303,7 @@ If you have purchased a brand new domain there are ways to get it categorized an
 Enjoy.
  
 
-![Cynernaut 001](/static/cybernaut_001.gif)
+![Cynernaut 001](/blob/main/static/cybernaut_001.gif)
 
 -Isaiah Miller (Cybernaut #001)
 
