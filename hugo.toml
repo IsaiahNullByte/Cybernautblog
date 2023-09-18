@@ -4,6 +4,7 @@ title = 'The Cybernaut Blog'
 theme = 'terminal'
 [params]
  fullWidthTheme = true
+ favicon = "favicon.ico"
 
 [languages]
   [languages.en]
