@@ -1,9 +1,9 @@
 +++
-title = "./How to bypass firewalls by hiding all traffic in HTTPS(SSL)443 encapsulated traffic"
+title = "How to bypass firewalls by hiding all traffic in HTTPS(SSL)443 encapsulated traffic"
 date = "2023-09-15T18:11:18-05:00"
 author = "Isaiah Miller"
 cover = ""
-tags = ["RedTeam", "Bypass", "Privacy", "Exfiltration", "Tunneling", "Stunnel"]
+tags = ["RedTeam", "Cyber Security", "Bypass", "Privacy", "Exfiltration", "Tunneling", "Stunnel", "Evasion"]
 keywords = ["Firewall", "SSL Proxy", "Tunneling", "Bypass"]
 description = "This displays the steps on how to hide all traffic in SSL(443) traffic to bypass firewalls. I will setup a reverse proxy and use stunnel in combination with ssh port forwarding to accomplish this."
 showFullContent = false

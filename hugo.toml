@@ -9,4 +9,4 @@ theme = 'terminal'
   [languages.en]
     [languages.en.params.logo]
       logoText = "./Cybernaut_Journal"
-      logoHomeLink = "/"
+      logoHomeLink = "/cybernautblog/"
