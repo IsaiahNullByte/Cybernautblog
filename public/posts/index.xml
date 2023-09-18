@@ -13,16 +13,17 @@
       <pubDate>Fri, 15 Sep 2023 18:11:18 -0500</pubDate>
       
       <guid>https://isaiahnullbyte.github.io/cybernautblog/posts/redteam_1_9-16-23/</guid>
-      <description>[Overview] Usually when behind a public or locked down firewall majority of the egress(outbound) traffic allowed is port 80(http) and 443(https). This is to allow only web surfing and prevent other applications and services like email or gaming to be used. The outbound web traffic can also be restriced by content filtering allowing what type of websites can be accesed. Another large concern is privacy. When using public networks or even using your own ISP&amp;rsquo;s network all of your traffic is visible to them.</description>
+      <description>[Overview] Usually when behind a public or locked down firewall majority of the egress(outbound) traffic allowed is port 80(http) and 443(https). This is to allow only web surfing and prevent other applications and services like email or gaming to be used. The outbound web traffic can also be restriced by content filtering allowing what type of websites that can be accesed. Another large concern is privacy. When using public networks or even using your own ISP&amp;rsquo;s network all of your traffic is visible to them.</description>
       <content>&lt;hr&gt;
 &lt;h1 id=&#34;overview&#34;&gt;[Overview]&lt;/h1&gt;
-&lt;p&gt;Usually when behind a public or locked down firewall majority of the egress(outbound) traffic allowed is port 80(http) and 443(https). This is to allow only web surfing and prevent other applications and services like email or gaming to be used. The outbound web traffic can also be restriced by content filtering allowing what type of websites can be accesed. Another large concern is privacy. When using public networks or even using your own ISP&amp;rsquo;s network all of your traffic is visible to them.&lt;/p&gt;
-&lt;p&gt;With this reverse proxy setup we can mask all of our traffic to appear as essentially HTTPS traffic which allows us to bypass alot of these restrictions. This can also be used as an alternative to vpns or used in conjuction with vpn to further mask traffic and provide more privacy. This method will work in most situations. Sometimes SSL inspection is configured or advanced content filtering and/or threat intelligence is being provided increasing factors of traffic getting blocked. However, these scenarios usually only occur in mature corporate enviroments and not the average public networks.&lt;/p&gt;
+&lt;p&gt;Usually when behind a public or locked down firewall majority of the egress(outbound) traffic allowed is port 80(http) and 443(https). This is to allow only web surfing and prevent other applications and services like email or gaming to be used. The outbound web traffic can also be restriced by content filtering allowing what type of websites that can be accesed. Another large concern is privacy. When using public networks or even using your own ISP&amp;rsquo;s network all of your traffic is visible to them.&lt;/p&gt;
+&lt;p&gt;With this reverse proxy setup we can mask all of our traffic to appear as essentially HTTPS traffic which allows us to bypass alot of these restrictions. This can also be used as an alternative to vpns or used in conjuction with vpn to further mask traffic and provide more privacy. This method will work in most situations. Sometimes SSL inspection is configured or advanced content filtering and/or threat intelligence is being leveraged increasing factors of traffic getting blocked. However, these scenarios usually only occur in mature corporate enviroments and not the average public networks.&lt;/p&gt;
+&lt;p&gt;To do:&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;We will host a reverse proxy on the internet. With a tool called stunnel we can create an ecrypted port forwarding tunnel over a 443(HTTPS) connection. Then we will use that port forward to create a ssh tunnel hidden within the encrypted 443(ssl) traffic that will allow us to setup a nested socks proxy OR portforward which in turn allows us to send any traffic we want out of the network.&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/ReverseProxy.png&#34; alt=&#34;Reverse Proxy Diagram&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Lets get started!&lt;/p&gt;
 &lt;h1 id=&#34;requirements&#34;&gt;[Requirements]&lt;/h1&gt;
-&lt;p&gt;For this deployment I will be using an &lt;strong&gt;Ubuntu 23.04 VPS(Virtual Private Server) for the reverse proxy server&lt;/strong&gt; and &lt;strong&gt;Kali 6.3.0-kali1-amd64 for the client machine&lt;/strong&gt;. This setup does not require these operating systems specifically. If you decide to use different operating systems just make sure the tools are compatible.&lt;/p&gt;
+&lt;p&gt;For this deployment I will be using an &lt;strong&gt;Ubuntu 23.04 VPS(Virtual Private Server) for the reverse proxy server&lt;/strong&gt; and &lt;strong&gt;Kali 6.3.0 for the client machine&lt;/strong&gt;. This setup does not require these operating systems specifically. If you decide to use different operating systems just make sure the tools are compatible.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Reverse Proxy Server:&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;https://letsencrypt.org/docs/faq/&#34;&gt;LetsEncrypt(Free SSL cert service)&lt;/a&gt;&lt;/li&gt;
@@ -47,49 +48,49 @@
 &lt;h6 id=&#34;reverse-proxy-server&#34;&gt;Reverse Proxy Server&lt;/h6&gt;
 &lt;p&gt;The server will take the most effort to setup. With this being a fresh Ubuntu install we will update and upgrade the server.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo apt update &amp;amp;&amp;amp; sudo apt upgrade -y&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Next step is to install the apache2 service and then run certbot to receive our LetsEncrypt SSL cert. This allows us to receive a signed ssl cert related to our domain associated with our reverse proxy server.&lt;/p&gt;
+&lt;p&gt;Now we need to install the apache2 service and then run certbot to receive our LetsEncrypt SSL cert. This allows us to receive a signed ssl cert related to our domain for the reverse proxy server.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Install Apache2&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo apt update&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo apt install apache2&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Considering our server now has running services and is reachable from the internet we will create host based firewall rules.&lt;/p&gt;
+&lt;p&gt;Considering the server is running services and is reachable from the internet we will create host based firewall rules.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Create host based firewall rules&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo ufw allow 22/tcp&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo ufw allow 80/tcp&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo ufw allow 443/tcp&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Feel free to add any further firewall rules that are necessary for any other services you may decide to run. Now that the rules are created we actually need to enable them.&lt;/p&gt;
+&lt;p&gt;Feel free to add any further firewall rules that are necessary for any other services you decide to run. Now that the rules are created we need to actually enable them.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Enable firewall rules&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo ufw reload&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Enable Apache2 service&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo systemctl start apache2&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Now, as explained on the certbot website we will use the apach2 service to received our signed SSL cert related to our reverse proxy domain. If you don&amp;rsquo;t own one already now we need to buy a domain before proceeding.&lt;/p&gt;
-&lt;p&gt;The domain we purchase is important because this is where all of our tunneled traffic will be seen going to when passing through the network and firewall. Choose a generic or innocent domain name with a common top level domain like .com, .net, .io etc. (Firewalls with threat intelligence are known to block cheap/strange domains like .xyz)&lt;/p&gt;
+&lt;p&gt;Now, as explained on the certbot website, we will use the apache2 service to request our signed SSL cert for the purchased domain. If you don&amp;rsquo;t own one already this is the time to buy a domain before proceeding.&lt;/p&gt;
+&lt;p&gt;The domain we purchase is important because this is where all of our tunneled traffic will be seen going to when passing through the network and firewall. Choose a generic or innocent domain name with a common top level domain like .com, .net, .io etc. (Firewalls with threat intelligence are known to block cheap or uncommon domains like .xyz)&lt;/p&gt;
 &lt;p&gt;If you are not familiar with how to purchase a domain through a registrar take the time out to research and get familiar with the process. It&amp;rsquo;s pretty simple and domains can be purchase from a &lt;a href=&#34;https://www.namecheap.com/domains/&#34;&gt;registrar like this one&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;The registrar should be able to host the dns records for the domain you purchased. Once you have a dns A record created and it&amp;rsquo;s pointing to your reverse proxy server you are ready to receive your ssl cert using certbot.&lt;/p&gt;
-&lt;p&gt;Certbot is a script that automates the SSL cert creation with LetsEncrypt. To see specific instructions depending on your reverse proxy servers operating system &lt;a href=&#34;https://certbot.eff.org/instructions&#34;&gt;visit here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The registrar usually provide dns services which you will use for the domain you purchased. Once you have a &lt;strong&gt;DNS A record&lt;/strong&gt; created and it&amp;rsquo;s pointing to your reverse proxy server you are ready to receive your ssl cert using certbot.&lt;/p&gt;
+&lt;p&gt;Certbot is a script that automates the SSL cert creation with LetsEncrypt. To see specific instructions, which may vary depending on your reverse proxy server&amp;rsquo;s operating system, &lt;a href=&#34;https://certbot.eff.org/instructions&#34;&gt;visit here&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Install Certbot&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo snap install --classic certbot&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo ln -s /snap/bin/certbot /usr/bin/certbot&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Before running cerbot we will edit our /etc/apache2/sites-available/000-default.conf configuration file so the cerbot script can identify our server by its new domain name.&lt;/p&gt;
+&lt;p&gt;Before running cerbot we will edit the /etc/apache2/sites-available/000-default.conf configuration file so that the cerbot script can identify our server by its purchased domain name.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Edit Apache2 configuration file&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo vim /etc/apache2/sites-available/000-default.conf&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Add the following line to the configuration file&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ServerName yourdomain.net
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/apache2_config.png&#34; alt=&#34;Apache configuration&#34;&gt;&lt;/p&gt;
-&lt;p&gt;Now its time to finally receive our SSL cert and begin to setup stunnel.&lt;/p&gt;
+&lt;p&gt;Now its time to receive our SSL cert and begin the stunnel setup.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Run certbot&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo snap install --classic certbot&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;Once this runs succesfully you should see the output of where your new SSL certificate and private key is located. Please copy these to the client machine for later use.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cert = /etc/letsencrypt/live/yourdomain.net/fullchain.pem
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;key = /etc/letsencrypt/live/yourdomain.net/privkey.pem
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We no longer need the apache2 service now that we have used certbot to obtain our valid ssl cert. The service must be stopped so that port 443 can be used later by stunnel.&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We no longer need the apache2 service now that we have used certbot to obtain our valid ssl cert. The service must be stopped so that the listening port 443 can be used later by stunnel.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Stop Apache2 service&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo systemctl stop apache2&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Stunnel can now be setup. Lets install it to our reverse proxy server.&lt;/p&gt;
+&lt;p&gt;Stunnel can now be setup. Lets install it on the reverse proxy server.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Install Stunnel&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo apt update&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo apt install stunnel4&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Create/Edit the stunnel config file on our server to use our new ssl cert as well as define its listening port and forwarding instructions.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Create/Edit the stunnel config file on the server to use our new ssl cert. We will define its listening port and forwarding instructions.&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo vim /etc/stunnel/stunnel.conf&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Add the following lines to the config file&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;pid = /var/run/stunnel.pid
@@ -104,7 +105,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;connect = localhost:22
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/stunnel_config.png&#34; alt=&#34;Server stunnel config&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Edit another stunnel config file to enable the service&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Edit additional stunnel config file to enable the service&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo vim /etc/default/stunnel4&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Add the following line to the end of the config file&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ENABLED=1
@@ -142,9 +143,9 @@
 &lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/stunnel_client_listening.png&#34; alt=&#34;Stunnel client listening port&#34;&gt;&lt;/p&gt;
 &lt;hr&gt;
 &lt;h1 id=&#34;bypassing&#34;&gt;[Bypassing]&lt;/h1&gt;
-&lt;p&gt;The reverse proxy server is fully setup/configured and we can succesfully connect from our client machine using stunnel to create our ssl(443) tunnel. Now lets setup our SSH port forward or socks proxy hidden within our ssl(443) tunnel.&lt;/p&gt;
+&lt;p&gt;The reverse proxy server is fully setup and configured. We can succesfully connect from our client machine using stunnel to create the ssl(443) tunnel. Now we will setup our SSH port forward or socks proxy that will be hidden within our ssl(443) tunnel.&lt;/p&gt;
 &lt;h6 id=&#34;ssh-socks-45-proxy&#34;&gt;SSH Socks 4/5 Proxy&lt;/h6&gt;
-&lt;p&gt;This SSH tunnel will open a socks 4/5 proxy on the client machine that will forward any traffic sent to its port over the ssh tunnel that is hidden inside the ssl(443) tunnel&lt;/p&gt;
+&lt;p&gt;This SSH tunnel will open a socks proxy on the client machine that will forward any traffic sent to it over the ssh tunnel that is hidden inside the ssl(443) tunnel&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Create the ssh sock proxy tunnel&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo ssh -D 9090 -q -C -N &amp;lt;user&amp;gt;@127.0.0.1 -p 9443&lt;/code&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-D : specifies the listening port of the socks proxy on the client
@@ -158,7 +159,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-p : defines the destination port to connect to (We are conencting to port forward provided by stunnel client)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/ssh_socks.png&#34; alt=&#34;SSH socks proxy&#34;&gt;&lt;/p&gt;
 &lt;h6 id=&#34;ssh-port-forward&#34;&gt;SSH Port forward&lt;/h6&gt;
-&lt;p&gt;This SSH tunnel will create a listening port on the client machine to port forward over the ssh tunnel that is hidden inside the ssl(443) tunnel&lt;/p&gt;
+&lt;p&gt;This SSH tunnel will create a listening port on the client machine to port forward traffic over the ssh tunnel that is hidden inside the ssl(443) tunnel&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Create the ssh port forwarding tunnel&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo ssh -q -C -N -L 9090:&amp;lt;destination ip&amp;gt;:&amp;lt;destination port&amp;gt; &amp;lt;user&amp;gt;@127.0.0.1 -p 9443&lt;/code&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-L : specifies the listening port of the port forward on the client
@@ -174,7 +175,7 @@
 &lt;hr&gt;
 &lt;h1 id=&#34;conclusion&#34;&gt;[Conclusion]&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;With this reverse proxy server setup and technique we can make all OR specific traffic appear as HTTPS(443).&lt;/strong&gt; Once the client establishes its SSL tunnel to the reverse proxy server the firewall is unable to tell the difference between our ssl tunnel and normal HTTPS(443) traffic due to encryption. In general public networks this is enough to bypass the firewall restrictions. This also works as a VPN alternative on networks where VPN traffic is blocked. Remember only TCP traffic can traverse ssh socks proxy or port forwarding.&lt;/p&gt;
-&lt;p&gt;When dealing with advanced firewalls there are many additional factors that can determine if the ssl connection is allowed over port 443. More advanced firewalls not only can perform SSL inspection(Decryption) but can also make decisions to allow traffic based off of ip address geographical region, ssl cert attributes, domain categorization, and domain reputation. This is where picking a domain with a common TLD(top level domain) and a generally trusted country to host the reverse proxy server is crucial.&lt;/p&gt;
+&lt;p&gt;When dealing with advanced firewalls there are many additional factors that can determine if the ssl connection is allowed over port 443. More advanced firewalls not only can perform SSL inspection(Decryption) but can also make decisions to allow traffic based off of destination ip address geo location, ssl cert attributes, domain categorization, and domain reputation. This is where picking a domain with a common TLD(top level domain) and a generally trusted country to host the reverse proxy server is crucial.&lt;/p&gt;
 &lt;p&gt;If you are an OSINT savy Cybernaut; registering an expired domain that already has url catergorization and good reputation would be recommended.&lt;/p&gt;
 &lt;p&gt;If you have purchased a brand new domain there are ways to get it categorized and build a domain reputation. These will not be covered here but will be touched on in another blog. If you made it this far I hope this was helpful and I&amp;rsquo;m sure you may come up with some creative use cases for this setup.&lt;/p&gt;
 &lt;p&gt;Enjoy.&lt;/p&gt;
