@@ -4,10 +4,10 @@ title = 'The Cybernaut Blog'
 theme = 'terminal'
 [params]
  fullWidthTheme = true
- favicon = "favicon.ico"
+ favicon = 'favicon.ico'
 
 [languages]
   [languages.en]
     [languages.en.params.logo]
-      logoText = "./Cybernaut_Journal"
-      logoHomeLink = "/cybernautblog/"
+      logoText = './Cybernaut_Journal'
+      logoHomeLink = '/cybernautblog/'
