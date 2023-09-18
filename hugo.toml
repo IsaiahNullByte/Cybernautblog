@@ -2,4 +2,11 @@ baseURL = 'https://isaiahnullbyte.github.io/cybernautblog/'
 languageCode = 'en-us'
 title = 'The Cybernaut Blog'
 theme = 'terminal'
-fullWidthTheme = true
+[params]
+ fullWidthTheme = true
+
+[languages]
+  [languages.en]
+    [languages.en.params.logo]
+      logoText = "./Cybernaut_Journal"
+      logoHomeLink = "/"

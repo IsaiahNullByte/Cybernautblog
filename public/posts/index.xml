@@ -5,7 +5,7 @@
     <link>https://isaiahnullbyte.github.io/cybernautblog/posts/</link>
     <description>Recent content in Posts on The Cybernaut Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>en</language>
     <lastBuildDate>Fri, 15 Sep 2023 18:11:18 -0500</lastBuildDate><atom:link href="https://isaiahnullbyte.github.io/cybernautblog/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>How to bypass firewalls by hiding all traffic in HTTPS(SSL)443 encapsulated traffic</title>
