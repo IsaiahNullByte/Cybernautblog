@@ -1,5 +1,5 @@
 +++
-title = "How to bypass firewalls by hiding all traffic in HTTPS(SSL)443 encapsulated traffic"
+title = "./How to bypass firewalls by hiding all traffic in HTTPS(SSL)443 encapsulated traffic"
 date = "2023-09-15T18:11:18-05:00"
 author = "Isaiah Miller"
 cover = ""
