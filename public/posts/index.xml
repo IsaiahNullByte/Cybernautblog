@@ -22,6 +22,7 @@
 &lt;p&gt;&lt;strong&gt;We will host a reverse proxy on the internet. With a tool called stunnel we can create an ecrypted port forwarding tunnel over a 443(HTTPS) connection. Then we will use that port forward to create a ssh tunnel hidden within the encrypted 443(ssl) traffic that will allow us to setup a nested socks proxy OR portforward which in turn allows us to send any traffic we want out of the network.&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/ReverseProxy.png&#34; alt=&#34;Reverse Proxy Diagram&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Lets get started!&lt;/p&gt;
+&lt;hr&gt;
 &lt;h1 id=&#34;requirements&#34;&gt;[Requirements]&lt;/h1&gt;
 &lt;p&gt;For this deployment I will be using an &lt;strong&gt;Ubuntu 23.04 VPS(Virtual Private Server) for the reverse proxy server&lt;/strong&gt; and &lt;strong&gt;Kali 6.3.0 for the client machine&lt;/strong&gt;. This setup does not require these operating systems specifically. If you decide to use different operating systems just make sure the tools are compatible.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Reverse Proxy Server:&lt;/strong&gt;&lt;/p&gt;

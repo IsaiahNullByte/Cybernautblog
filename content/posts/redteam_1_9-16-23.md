@@ -28,6 +28,8 @@ To do:
 
 Lets get started!
 
+-----------------------------------------------
+
 # [Requirements]
 For this deployment I will be using an **Ubuntu 23.04 VPS(Virtual Private Server) for the reverse proxy server** and **Kali 6.3.0 for the client machine**. This setup does not require these operating systems specifically. If you decide to use different operating systems just make sure the tools are compatible.
 
