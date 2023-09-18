@@ -123,7 +123,7 @@ Now its time to receive our SSL cert and begin the stunnel setup.
 
 ``sudo snap install --classic certbot``
 
-Once this runs succesfully you should see the output of where your new SSL certificate and private key is located. Please copy these to the client machine for later use.
+Once this runs succesfully you should see the output of where your new SSL certificate and private key is located.
 
 ```html
 cert = /etc/letsencrypt/live/yourdomain.net/fullchain.pem
