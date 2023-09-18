@@ -127,7 +127,7 @@
 <p>Usually when behind a public or locked down firewall majority of the egress(outbound) traffic allowed is port 80(http) and 443(https). This is to allow only web surfing and prevent other applications and services like email or gaming to be used. The outbound web traffic can also be restriced by content filtering allowing what type of websites can be accesed. Another large concern is privacy. When using public networks or even using your own ISP&rsquo;s network all of your traffic is visible to them.</p>
 <p>With this reverse proxy setup we can mask all of our traffic to appear as essentially HTTPS traffic which allows us to bypass alot of these restrictions. This can also be used as an alternative to vpns or used in conjuction with vpn to further mask traffic and provide more privacy. This method will work in most situations. Sometimes SSL inspection is configured or advanced content filtering and/or threat intelligence is being provided increasing factors of traffic getting blocked. However, these scenarios usually only occur in mature corporate enviroments and not the average public networks.</p>
 <p><strong>We will host a reverse proxy on the internet. With a tool called stunnel we can create an ecrypted port forwarding tunnel over a 443(HTTPS) connection. Then we will use that port forward to create a ssh tunnel hidden within the encrypted 443(ssl) traffic that will allow us to setup a nested socks proxy OR portforward which in turn allows us to send any traffic we want out of the network.</strong></p>
-<p><img src="/blob/main/static/ReverseProxy.png" alt="Reverse Proxy Diagram"></p>
+<p><img src="/cybernautblog/ReverseProxy.png" alt="Reverse Proxy Diagram"></p>
 <p>Lets get started!</p>
 <h1 id="requirements">[Requirements]<a href="#requirements" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
 <p>For this deployment I will be using an <strong>Ubuntu 23.04 VPS(Virtual Private Server) for the reverse proxy server</strong> and <strong>Kali 6.3.0-kali1-amd64 for the client machine</strong>. This setup does not require these operating systems specifically. If you decide to use different operating systems just make sure the tools are compatible.</p>
@@ -182,7 +182,7 @@
 <p><code>sudo vim /etc/apache2/sites-available/000-default.conf</code></p>
 <p><strong>Add the following line to the configuration file</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>ServerName yourdomain.net
-</span></span></code></pre></div><p><img src="/static/apache2_config.png" alt="Apache configuration"></p>
+</span></span></code></pre></div><p><img src="/cybernautblog/apache2_config.png" alt="Apache configuration"></p>
 <p>Now its time to finally receive our SSL cert and begin to setup stunnel.</p>
 <p><strong>Run certbot</strong></p>
 <p><code>sudo snap install --classic certbot</code></p>
@@ -211,17 +211,17 @@
 </span></span><span style="display:flex;"><span>accept = 0.0.0.0:443
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>connect = localhost:22
-</span></span></code></pre></div><p><img src="/static/stunnel_config.png" alt="Server stunnel config"></p>
+</span></span></code></pre></div><p><img src="/cybernautblog/stunnel_config.png" alt="Server stunnel config"></p>
 <p><strong>Edit another stunnel config file to enable the service</strong></p>
 <p><code>sudo vim /etc/default/stunnel4</code></p>
 <p><strong>Add the following line to the end of the config file</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>ENABLED=1
-</span></span></code></pre></div><p><img src="/static/stunnel_enabled_config.png" alt="Stunnel server enabled config"></p>
+</span></span></code></pre></div><p><img src="/cybernautblog/stunnel_enabled_config.png" alt="Stunnel server enabled config"></p>
 <p><strong>Start the stunnel service</strong></p>
 <p><code>sudo /etc/init.d/stunnel4 restart</code></p>
 <p><strong>To ensure the stunnel service is running and listening on specified port 443 run the following command</strong></p>
 <p><code>sudo netstat -ano | grep tcp</code></p>
-<p><img src="/static/stunnel_listening.png" alt="Stunnel server listening port"></p>
+<p><img src="/cybernautblog/stunnel_listening.png" alt="Stunnel server listening port"></p>
 <p>If you see that your reverse proxy server is listening on port 443 after starting the stunnel service you are all set! Now lets pivot over to the client machine and setup the stunnel client and begin bypassing.</p>
 <h6 id="client-machine">Client Machine<a href="#client-machine" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h6>
 <p>Update and upgrade the fresh kali install on the client machine.</p>
@@ -242,12 +242,12 @@
 </span></span><span style="display:flex;"><span>accept=9443
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>connect=yourdomain.net:443
-</span></span></code></pre></div><p><img src="/static/stunnel_client_config.png" alt="Stunnel client config"></p>
+</span></span></code></pre></div><p><img src="/cybernautblog/stunnel_client_config.png" alt="Stunnel client config"></p>
 <p><strong>Run stunnel client to connect to reverse proxy server establishing ssl(443) tunnel</strong></p>
 <p><code>sudo stunnel $HOME/stunnel-client.conf</code></p>
 <p><strong>Now confirm if the client is listening on its forwarding port that is defined in the config file</strong></p>
 <p><code>sudo netstat -ano | grep tcp</code></p>
-<p><img src="/static/stunnel_client_listening.png" alt="Stunnel client listening port"></p>
+<p><img src="/cybernautblog/stunnel_client_listening.png" alt="Stunnel client listening port"></p>
 <hr>
 <h1 id="bypassing">[Bypassing]<a href="#bypassing" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
 <p>The reverse proxy server is fully setup/configured and we can succesfully connect from our client machine using stunnel to create our ssl(443) tunnel. Now lets setup our SSH port forward or socks proxy hidden within our ssl(443) tunnel.</p>
@@ -264,7 +264,7 @@
 </span></span><span style="display:flex;"><span>-N : non interactive ssh session just creats the tunnel no command prompt
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>-p : defines the destination port to connect to (We are conencting to port forward provided by stunnel client)
-</span></span></code></pre></div><p><img src="/static/ssh_socks.png" alt="SSH socks proxy"></p>
+</span></span></code></pre></div><p><img src="/cybernautblog/ssh_socks.png" alt="SSH socks proxy"></p>
 <h6 id="ssh-port-forward">SSH Port forward<a href="#ssh-port-forward" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h6>
 <p>This SSH tunnel will create a listening port on the client machine to port forward over the ssh tunnel that is hidden inside the ssl(443) tunnel</p>
 <p><strong>Create the ssh port forwarding tunnel</strong></p>
@@ -278,7 +278,7 @@
 </span></span><span style="display:flex;"><span>-N : non interactive ssh session just creats the tunnel no command prompt
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>-p : defines the destination port to connect to (We are conencting to port forward provided by stunnel client)
-</span></span></code></pre></div><p><img src="/static/ssh_port_forward.png" alt="SSH port forward"></p>
+</span></span></code></pre></div><p><img src="/cybernautblog/ssh_port_forward.png" alt="SSH port forward"></p>
 <hr>
 <h1 id="conclusion">[Conclusion]<a href="#conclusion" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
 <p><strong>With this reverse proxy server setup and technique we can make all OR specific traffic appear as HTTPS(443).</strong> Once the client establishes its SSL tunnel to the reverse proxy server the firewall is unable to tell the difference between our ssl tunnel and normal HTTPS(443) traffic due to encryption. In general public networks this is enough to bypass the firewall restrictions. This also works as a VPN alternative on networks where VPN traffic is blocked. Remember only TCP traffic can traverse ssh socks proxy or port forwarding.</p>
@@ -286,7 +286,7 @@
 <p>If you are an OSINT savy Cybernaut; registering an expired domain that already has url catergorization and good reputation would be recommended.</p>
 <p>If you have purchased a brand new domain there are ways to get it categorized and build a domain reputation. These will not be covered here but will be touched on in another blog. If you made it this far I hope this was helpful and I&rsquo;m sure you may come up with some creative use cases for this setup.</p>
 <p>Enjoy.</p>
-<p><img src="/blob/main/static/cybernaut_001.gif" alt="Cynernaut 001"></p>
+<p><img src="/cybernautblog/cybernaut_001.gif" alt="Cynernaut 001"></p>
 <p>-Isaiah Miller (Cybernaut #001)</p>
 
       </div></div>
