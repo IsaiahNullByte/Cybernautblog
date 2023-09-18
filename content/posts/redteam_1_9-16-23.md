@@ -22,7 +22,7 @@ With this reverse proxy setup we can mask all of our traffic to appear as essent
 
 **We will host a reverse proxy on the internet. With a tool called stunnel we can create an ecrypted port forwarding tunnel over a 443(HTTPS) connection. Then we will use that port forward to create a ssh tunnel hidden within the encrypted 443(ssl) traffic that will allow us to setup a nested socks proxy OR portforward which in turn allows us to send any traffic we want out of the network.** 
 
-![Reverse Proxy Diagram](/cybernautblog/ReverseProxy.png)
+![Reverse Proxy Diagram](/cybernautblog/redteam_post_1/ReverseProxy.png)
 
 Lets get started!
 
@@ -110,7 +110,7 @@ Before running cerbot we will edit our /etc/apache2/sites-available/000-default.
 ServerName yourdomain.net
 ```
 
-![Apache configuration](/cybernautblog/apache2_config.png)
+![Apache configuration](/cybernautblog/redteam_post_1/apache2_config.png)
 
 Now its time to finally receive our SSL cert and begin to setup stunnel.
 
@@ -161,7 +161,7 @@ connect = localhost:22
 
 ```
 
-![Server stunnel config](/cybernautblog/stunnel_config.png)
+![Server stunnel config](/cybernautblog/redteam_post_1/stunnel_config.png)
 
 **Edit another stunnel config file to enable the service**
 
@@ -175,7 +175,7 @@ ENABLED=1
 
 ```
 
-![Stunnel server enabled config](/cybernautblog/stunnel_enabled_config.png)
+![Stunnel server enabled config](/cybernautblog/redteam_post_1/stunnel_enabled_config.png)
 
 **Start the stunnel service**
 
@@ -185,7 +185,7 @@ ENABLED=1
 
 ``sudo netstat -ano | grep tcp``
 
-![Stunnel server listening port](/cybernautblog/stunnel_listening.png)
+![Stunnel server listening port](/cybernautblog/redteam_post_1/stunnel_listening.png)
 
 If you see that your reverse proxy server is listening on port 443 after starting the stunnel service you are all set! Now lets pivot over to the client machine and setup the stunnel client and begin bypassing.
 
@@ -222,7 +222,7 @@ connect=yourdomain.net:443
 
 ```
 
-![Stunnel client config](/cybernautblog/stunnel_client_config.png)
+![Stunnel client config](/cybernautblog/redteam_post_1/stunnel_client_config.png)
 
 **Run stunnel client to connect to reverse proxy server establishing ssl(443) tunnel**
 
@@ -232,7 +232,7 @@ connect=yourdomain.net:443
 
 ``sudo netstat -ano | grep tcp``
 
-![Stunnel client listening port](/cybernautblog/stunnel_client_listening.png)
+![Stunnel client listening port](/cybernautblog/redteam_post_1/stunnel_client_listening.png)
 
 
 ------------------------------------------------
@@ -263,7 +263,7 @@ This SSH tunnel will open a socks 4/5 proxy on the client machine that will forw
 
 ```
 
-![SSH socks proxy](/cybernautblog/ssh_socks.png)
+![SSH socks proxy](/cybernautblog/redteam_post_1/ssh_socks.png)
 
 ###### SSH Port forward
 
@@ -286,7 +286,7 @@ This SSH tunnel will create a listening port on the client machine to port forwa
 
 ```
 
-![SSH port forward](/cybernautblog/ssh_port_forward.png)
+![SSH port forward](/cybernautblog/redteam_post_1/ssh_port_forward.png)
 
 ------------------------------------------------
 
@@ -303,7 +303,7 @@ If you have purchased a brand new domain there are ways to get it categorized an
 Enjoy.
  
 
-![Cynernaut 001](/cybernautblog/cybernaut_001.gif)
+![Cynernaut 001](/cybernautblog/signature/cybernaut_001.gif)
 
 -Isaiah Miller (Cybernaut #001)
 

@@ -19,7 +19,7 @@
 &lt;p&gt;Usually when behind a public or locked down firewall majority of the egress(outbound) traffic allowed is port 80(http) and 443(https). This is to allow only web surfing and prevent other applications and services like email or gaming to be used. The outbound web traffic can also be restriced by content filtering allowing what type of websites can be accesed. Another large concern is privacy. When using public networks or even using your own ISP&amp;rsquo;s network all of your traffic is visible to them.&lt;/p&gt;
 &lt;p&gt;With this reverse proxy setup we can mask all of our traffic to appear as essentially HTTPS traffic which allows us to bypass alot of these restrictions. This can also be used as an alternative to vpns or used in conjuction with vpn to further mask traffic and provide more privacy. This method will work in most situations. Sometimes SSL inspection is configured or advanced content filtering and/or threat intelligence is being provided increasing factors of traffic getting blocked. However, these scenarios usually only occur in mature corporate enviroments and not the average public networks.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;We will host a reverse proxy on the internet. With a tool called stunnel we can create an ecrypted port forwarding tunnel over a 443(HTTPS) connection. Then we will use that port forward to create a ssh tunnel hidden within the encrypted 443(ssl) traffic that will allow us to setup a nested socks proxy OR portforward which in turn allows us to send any traffic we want out of the network.&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/ReverseProxy.png&#34; alt=&#34;Reverse Proxy Diagram&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/ReverseProxy.png&#34; alt=&#34;Reverse Proxy Diagram&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Lets get started!&lt;/p&gt;
 &lt;h1 id=&#34;requirements&#34;&gt;[Requirements]&lt;/h1&gt;
 &lt;p&gt;For this deployment I will be using an &lt;strong&gt;Ubuntu 23.04 VPS(Virtual Private Server) for the reverse proxy server&lt;/strong&gt; and &lt;strong&gt;Kali 6.3.0-kali1-amd64 for the client machine&lt;/strong&gt;. This setup does not require these operating systems specifically. If you decide to use different operating systems just make sure the tools are compatible.&lt;/p&gt;
@@ -74,7 +74,7 @@
 &lt;p&gt;&lt;code&gt;sudo vim /etc/apache2/sites-available/000-default.conf&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Add the following line to the configuration file&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ServerName yourdomain.net
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/apache2_config.png&#34; alt=&#34;Apache configuration&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/apache2_config.png&#34; alt=&#34;Apache configuration&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Now its time to finally receive our SSL cert and begin to setup stunnel.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Run certbot&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo snap install --classic certbot&lt;/code&gt;&lt;/p&gt;
@@ -103,17 +103,17 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;accept = 0.0.0.0:443
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;connect = localhost:22
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/stunnel_config.png&#34; alt=&#34;Server stunnel config&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/stunnel_config.png&#34; alt=&#34;Server stunnel config&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Edit another stunnel config file to enable the service&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo vim /etc/default/stunnel4&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Add the following line to the end of the config file&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ENABLED=1
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/stunnel_enabled_config.png&#34; alt=&#34;Stunnel server enabled config&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/stunnel_enabled_config.png&#34; alt=&#34;Stunnel server enabled config&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Start the stunnel service&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo /etc/init.d/stunnel4 restart&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;To ensure the stunnel service is running and listening on specified port 443 run the following command&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo netstat -ano | grep tcp&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/stunnel_listening.png&#34; alt=&#34;Stunnel server listening port&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/stunnel_listening.png&#34; alt=&#34;Stunnel server listening port&#34;&gt;&lt;/p&gt;
 &lt;p&gt;If you see that your reverse proxy server is listening on port 443 after starting the stunnel service you are all set! Now lets pivot over to the client machine and setup the stunnel client and begin bypassing.&lt;/p&gt;
 &lt;h6 id=&#34;client-machine&#34;&gt;Client Machine&lt;/h6&gt;
 &lt;p&gt;Update and upgrade the fresh kali install on the client machine.&lt;/p&gt;
@@ -134,12 +134,12 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;accept=9443
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;connect=yourdomain.net:443
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/stunnel_client_config.png&#34; alt=&#34;Stunnel client config&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/stunnel_client_config.png&#34; alt=&#34;Stunnel client config&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Run stunnel client to connect to reverse proxy server establishing ssl(443) tunnel&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo stunnel $HOME/stunnel-client.conf&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Now confirm if the client is listening on its forwarding port that is defined in the config file&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;sudo netstat -ano | grep tcp&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/stunnel_client_listening.png&#34; alt=&#34;Stunnel client listening port&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/stunnel_client_listening.png&#34; alt=&#34;Stunnel client listening port&#34;&gt;&lt;/p&gt;
 &lt;hr&gt;
 &lt;h1 id=&#34;bypassing&#34;&gt;[Bypassing]&lt;/h1&gt;
 &lt;p&gt;The reverse proxy server is fully setup/configured and we can succesfully connect from our client machine using stunnel to create our ssl(443) tunnel. Now lets setup our SSH port forward or socks proxy hidden within our ssl(443) tunnel.&lt;/p&gt;
@@ -156,7 +156,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-N : non interactive ssh session just creats the tunnel no command prompt
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-p : defines the destination port to connect to (We are conencting to port forward provided by stunnel client)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/ssh_socks.png&#34; alt=&#34;SSH socks proxy&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/ssh_socks.png&#34; alt=&#34;SSH socks proxy&#34;&gt;&lt;/p&gt;
 &lt;h6 id=&#34;ssh-port-forward&#34;&gt;SSH Port forward&lt;/h6&gt;
 &lt;p&gt;This SSH tunnel will create a listening port on the client machine to port forward over the ssh tunnel that is hidden inside the ssl(443) tunnel&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Create the ssh port forwarding tunnel&lt;/strong&gt;&lt;/p&gt;
@@ -170,7 +170,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-N : non interactive ssh session just creats the tunnel no command prompt
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-p : defines the destination port to connect to (We are conencting to port forward provided by stunnel client)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/ssh_port_forward.png&#34; alt=&#34;SSH port forward&#34;&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/redteam_post_1/ssh_port_forward.png&#34; alt=&#34;SSH port forward&#34;&gt;&lt;/p&gt;
 &lt;hr&gt;
 &lt;h1 id=&#34;conclusion&#34;&gt;[Conclusion]&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;With this reverse proxy server setup and technique we can make all OR specific traffic appear as HTTPS(443).&lt;/strong&gt; Once the client establishes its SSL tunnel to the reverse proxy server the firewall is unable to tell the difference between our ssl tunnel and normal HTTPS(443) traffic due to encryption. In general public networks this is enough to bypass the firewall restrictions. This also works as a VPN alternative on networks where VPN traffic is blocked. Remember only TCP traffic can traverse ssh socks proxy or port forwarding.&lt;/p&gt;
@@ -178,7 +178,7 @@
 &lt;p&gt;If you are an OSINT savy Cybernaut; registering an expired domain that already has url catergorization and good reputation would be recommended.&lt;/p&gt;
 &lt;p&gt;If you have purchased a brand new domain there are ways to get it categorized and build a domain reputation. These will not be covered here but will be touched on in another blog. If you made it this far I hope this was helpful and I&amp;rsquo;m sure you may come up with some creative use cases for this setup.&lt;/p&gt;
 &lt;p&gt;Enjoy.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/cybernaut_001.gif&#34; alt=&#34;Cynernaut 001&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://isaiahnullbyte.github.io/cybernautblog/cybernautblog/signature/cybernaut_001.gif&#34; alt=&#34;Cynernaut 001&#34;&gt;&lt;/p&gt;
 &lt;p&gt;-Isaiah Miller (Cybernaut #001)&lt;/p&gt;
 </content>
     </item>
