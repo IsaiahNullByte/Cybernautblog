@@ -137,7 +137,7 @@ Ancillary chunks in a row:
 ![](/cybernautblog/redteam_post_2/imgInject1.png)
 
 
-As seen in the screenshot chunks # 5 and 6 have a combined chunk length of 50 bytes which is enough to fit our base64 payload. I also noticed these "Chunk Types" are "text". If you overwrite only Ancillary chunks and the image doesn't render properly then look for text chunk types specifically. 
+As seen in the screenshot chunks # 4 and 5 have a combined chunk length of 50 bytes which is enough to fit our base64 payload. I also noticed these "Chunk Types" are "text". If you overwrite only Ancillary chunks and the image doesn't render properly then look for text chunk types specifically. 
 
 **Make note of the first chunks "Chunk Offset"** as we will need it for the next command when we inject the payload into the image using the imgInject tool.
 
