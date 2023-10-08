@@ -6,7 +6,77 @@
     <description>Recent content in Tags on The Cybernaut Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 15 Sep 2023 18:11:18 -0500</lastBuildDate><atom:link href="https://isaiahnullbyte.github.io/cybernautblog/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 02 Oct 2023 21:48:52 -0500</lastBuildDate><atom:link href="https://isaiahnullbyte.github.io/cybernautblog/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CyberSecurity</title>
+      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/cybersecurity/</link>
+      <pubDate>Mon, 02 Oct 2023 21:48:52 -0500</pubDate>
+      
+      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/cybersecurity/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Evasion</title>
+      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/evasion/</link>
+      <pubDate>Mon, 02 Oct 2023 21:48:52 -0500</pubDate>
+      
+      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/evasion/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Obfuscation</title>
+      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/obfuscation/</link>
+      <pubDate>Mon, 02 Oct 2023 21:48:52 -0500</pubDate>
+      
+      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/obfuscation/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Phishing</title>
+      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/phishing/</link>
+      <pubDate>Mon, 02 Oct 2023 21:48:52 -0500</pubDate>
+      
+      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/phishing/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Powershell</title>
+      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/powershell/</link>
+      <pubDate>Mon, 02 Oct 2023 21:48:52 -0500</pubDate>
+      
+      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/powershell/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>RedTeam</title>
+      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/redteam/</link>
+      <pubDate>Mon, 02 Oct 2023 21:48:52 -0500</pubDate>
+      
+      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/redteam/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Steganography</title>
+      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/steganography/</link>
+      <pubDate>Mon, 02 Oct 2023 21:48:52 -0500</pubDate>
+      
+      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/steganography/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>Bypass</title>
       <link>https://isaiahnullbyte.github.io/cybernautblog/tags/bypass/</link>
@@ -28,16 +98,6 @@
     </item>
     
     <item>
-      <title>Evasion</title>
-      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/evasion/</link>
-      <pubDate>Fri, 15 Sep 2023 18:11:18 -0500</pubDate>
-      
-      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/evasion/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
       <title>Exfiltration</title>
       <link>https://isaiahnullbyte.github.io/cybernautblog/tags/exfiltration/</link>
       <pubDate>Fri, 15 Sep 2023 18:11:18 -0500</pubDate>
@@ -53,16 +113,6 @@
       <pubDate>Fri, 15 Sep 2023 18:11:18 -0500</pubDate>
       
       <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/privacy/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>RedTeam</title>
-      <link>https://isaiahnullbyte.github.io/cybernautblog/tags/redteam/</link>
-      <pubDate>Fri, 15 Sep 2023 18:11:18 -0500</pubDate>
-      
-      <guid>https://isaiahnullbyte.github.io/cybernautblog/tags/redteam/</guid>
       <description></description>
       <content></content>
     </item>

