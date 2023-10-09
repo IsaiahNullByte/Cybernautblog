@@ -66,6 +66,8 @@ Our stager will be written in powershell for the target windows host and will pu
 
 One last thing. AV is pretty good at detecting powershell reverse shells. Even when executing the reverse shell in memory AV is able to pick up on the 'New-Object System.Net.Sockets.TCPClient('127.0.0.0',80)' string in memory and block it as malicious. This can be bypassed using powershell obuscation scripts to obfuscate your payload before base64 encoding it. I was succesful after trying 3 different obuscation scripts that attempted different techniques. Another work around may have been to execute an method of reverse shell outside of powershell. Like creating the payload to execute spawn cmd.exe etc. This may bypass the 'regex' string based detections in memory.  If this is your first rodeo you may want to try with a simple payload first and then alter your payload to contain more complexity.
 
+I would also like to point out that the stager could be designed to use ASMI bypass or unhooking techniques. ASMI is used by windows to allow AV third part vendors/security solutions intergrate with it. Adding this code to the stager could increase chances of detection by the AV itself before you have the chance to unhook it. In this situation the ASMI bypass could be the encoded payload in the image itself if the payload is able to fit.
+
 Original payload:
 
 ``C:\Windows\System32\calc.exe``
